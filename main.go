@@ -14,11 +14,19 @@ type Target struct {
 	Host      string
 	Protocol  string
 	IpAddress string
+	Port      string
 }
 
 func (t Target) remote_login() {
-	fmt.Printf("Connect to %s(%s).", t.Host, t.IpAddress)
-	cmd := exec.Command(t.Protocol, t.IpAddress)
+	fmt.Printf("Connect to %s (IP: %s, Port: %s).\n", t.Host, t.IpAddress, t.Port)
+
+	var cmd *exec.Cmd
+
+	if t.Protocol == "ssh" {
+		cmd = exec.Command(t.Protocol, t.IpAddress, "-p", t.Port)
+	} else {
+		cmd = exec.Command(t.Protocol, t.IpAddress, t.Port)
+	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -66,7 +74,7 @@ func redraw_all(target_slice []Target, hl_line int) {
 		} else {
 			bgcolor = coldef
 		}
-		msg := t.Host + "\t(" + t.IpAddress + ")"
+		msg := t.Host + "\t(" + t.IpAddress + "), Port " + t.Port
 		tbprint(0, i+3, coldef, bgcolor, msg)
 	}
 	termbox.Flush()
@@ -84,14 +92,33 @@ func main() {
 		panic(err)
 	}
 
+	port := map[string]string{
+		"telnet": "23",
+		"ssh":    "22",
+	}
 	target_slice := make([]Target, len(lines))
+
 	for i, line := range lines {
 		elements := strings.Fields(line)
-		if len(elements) != 3 {
+		switch len(elements) {
+		case 3:
+			target_slice[i] = Target{
+				Host:      elements[0],
+				Protocol:  elements[1],
+				IpAddress: elements[2],
+				Port:      port[elements[1]],
+			}
+		case 4:
+			target_slice[i] = Target{
+				Host:      elements[0],
+				Protocol:  elements[1],
+				IpAddress: elements[2],
+				Port:      elements[3],
+			}
+		default:
 			fmt.Println("configration file is invalid\n")
 			os.Exit(0)
 		}
-		target_slice[i] = Target{Host: elements[0], Protocol: elements[1], IpAddress: elements[2]}
 	}
 
 	err = termbox.Init()
