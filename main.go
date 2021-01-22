@@ -34,7 +34,6 @@ func (t Target) remote_login() {
 	if err != nil {
 		panic(err)
 	}
-	defer os.Exit(0)
 }
 
 func read_file(path string) (lines []string, err error) {
@@ -141,6 +140,7 @@ mainloop:
 			switch ev.Key {
 			case termbox.KeyEsc:
 				break mainloop
+				// os.Exit(10)
 			case termbox.KeyCtrlP:
 				hl_line = hl_line - 1
 			case termbox.KeyCtrlN:
@@ -148,6 +148,10 @@ mainloop:
 			case termbox.KeyEnter:
 				termbox.Close()
 				target_slice[hl_line].remote_login()
+				err = termbox.Init()
+				if err != nil {
+					panic(err)
+				}
 			default:
 				if ev.Ch == KeyK {
 					hl_line = hl_line - 1
