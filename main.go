@@ -62,19 +62,23 @@ func tbprint(x, y int, fg, bg termbox.Attribute, msg string) {
 func redraw_all(target_slice []Target, hl_line int) {
 	const coldef = termbox.ColorDefault
 	const SelectBgColor = 8
+    const SelectFgColor = 1
 	bgcolor := coldef
-	termbox.Clear(coldef, coldef)
-	tbprint(0, 0, coldef, bgcolor, "fumu")
-	tbprint(0, 1, coldef, bgcolor, "[Enter]:login\t[j,Ctrl-N]:down\t[k,Ctrl-P]:up\t[ESC]:quit")
+    fgcolor := coldef
+	termbox.Clear(fgcolor, coldef)
+	tbprint(0, 0, fgcolor, bgcolor, "fumu")
+	tbprint(0, 1, fgcolor, bgcolor, "[Enter]:login\t[j,Ctrl-N,↓]:down\t[k,Ctrl-P,↑]:up\t[ESC]:quit")
 
 	for i, t := range target_slice {
 		if hl_line == i {
 			bgcolor = SelectBgColor
+            fgcolor = SelectFgColor
 		} else {
 			bgcolor = coldef
+            fgcolor = coldef
 		}
 		msg := t.Host + "\t(" + t.IpAddress + "), Port " + t.Port
-		tbprint(0, i+3, coldef, bgcolor, msg)
+		tbprint(0, i+3, fgcolor, bgcolor, msg)
 	}
 	termbox.Flush()
 }
@@ -140,10 +144,9 @@ mainloop:
 			switch ev.Key {
 			case termbox.KeyEsc:
 				break mainloop
-				// os.Exit(10)
-			case termbox.KeyCtrlP:
+			case termbox.KeyCtrlP, termbox.KeyArrowUp:
 				hl_line = hl_line - 1
-			case termbox.KeyCtrlN:
+			case termbox.KeyCtrlN, termbox.KeyArrowDown:
 				hl_line = hl_line + 1
 			case termbox.KeyEnter:
 				termbox.Close()
